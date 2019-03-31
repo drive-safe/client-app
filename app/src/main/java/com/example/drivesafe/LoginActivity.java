@@ -8,15 +8,17 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
+
+import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.HashMap;
-import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
     EditText etName, etPassword;
@@ -42,6 +44,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 userLogin();
+                //startActivity(new Intent(getApplicationContext(), PopUpActivity .class));
             }
         });
 
@@ -73,61 +76,40 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         //if everything is fine
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, URLs.URL_LOGIN,
-                new Response.Listener<String>() {
+        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
+        // Post params to be sent to the server
+        HashMap<String, String> params = new HashMap<String, String>();
+        params.put("email", username);
+        params.put("password", password);
+        params.put("client","0");
+        Toast.makeText(LoginActivity.this,"sending", Toast.LENGTH_SHORT).show();
+        JsonObjectRequest req = new JsonObjectRequest(URLs.URL_LOGIN, new JSONObject(params),
+                new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(String response) {
-                        progressBar.setVisibility(View.GONE);
-
+                    public void onResponse(JSONObject response) {
                         try {
-                            //converting response to json object
-                            JSONObject obj = new JSONObject(response);
 
-                            //if no error in response
-                            if (!obj.getBoolean("error")) {
-                                Toast.makeText(getApplicationContext(), obj.getString("message"), Toast.LENGTH_SHORT).show();
-
-                                //getting the user from the response
-                                JSONObject userJson = obj.getJSONObject("user");
-
-                                //creating a new user object
-                                User user = new User(
-                                        userJson.getInt("id"),
-                                        userJson.getString("username"),
-                                        userJson.getString("email"),
-                                        userJson.getString("gender")
-                                );
-
-                                //storing the user in shared preferences
-                                SharedPrefManager.getInstance(getApplicationContext()).userLogin(user);
-                                //starting the profile activity
-                                finish();
-                                startActivity(new Intent(getApplicationContext(), MainActivity.class));
-                            } else {
-                                Toast.makeText(getApplicationContext(), obj.getString("message"), Toast.LENGTH_SHORT).show();
-                            }
+                            Toast.makeText(LoginActivity.this,response.toString(), Toast.LENGTH_SHORT).show();
+                            VolleyLog.v("Response:%n %s", response.toString(4));
+                            Intent  intent = new Intent(getApplicationContext(), PopUpActivity.class);
+                            intent.putExtra("id", response.getJSONObject("data").get("id").toString());
+                            startActivity(intent);
+                            finish();
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     }
-                },
-                new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
-
-                    }
-                })
-        {
+                }, new Response.ErrorListener() {
             @Override
-            protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String, String> params = new HashMap<>();
-                params.put("username", username);
-                params.put("password", password);
-                return params;
+            public void onErrorResponse(VolleyError error) {
+                Toast.makeText(LoginActivity.this,error.getMessage(), Toast.LENGTH_LONG).show();
+                VolleyLog.e("Error: ", error.getMessage());
             }
-        };
+        });
 
-        VolleySingleton.getInstance(this).addToRequestQueue(stringRequest);
+        mRequestQueue.add(req);
+
+
+        //VolleySingleton.getInstance(this).addToRequestQueue(stringRequest);
     }
 }

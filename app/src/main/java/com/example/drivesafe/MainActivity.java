@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-    TextView id,userName,userEmail,gender;
+    TextView id,userName,userEmail,gender,phoneno;
     Button btnLogout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {

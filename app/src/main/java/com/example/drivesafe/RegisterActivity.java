@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
-    EditText editTextUsername, editTextEmail, editTextPassword;
+    EditText editTextUsername, editTextEmail, editTextPassword, editTextmobile;
     RadioGroup radioGroupGender;
     ProgressBar progressBar;
     @Override
@@ -39,6 +39,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         editTextUsername = findViewById(R.id.editTextUsername);
         editTextEmail = findViewById(R.id.editTextEmail);
+        editTextmobile = findViewById(R.id.editTextMobile);
         editTextPassword = findViewById(R.id.editTextPassword);
         radioGroupGender = findViewById(R.id.radioGender);
 
@@ -66,6 +67,7 @@ public class RegisterActivity extends AppCompatActivity {
     private void registerUser() {
         final String username = editTextUsername.getText().toString().trim();
         final String email = editTextEmail.getText().toString().trim();
+        final String mobile = editTextmobile.getText().toString().trim();
         final String password = editTextPassword.getText().toString().trim();
 
         final String gender = ((RadioButton) findViewById(radioGroupGender.getCheckedRadioButtonId())).getText().toString();
@@ -79,6 +81,12 @@ public class RegisterActivity extends AppCompatActivity {
 
         if (TextUtils.isEmpty(email)) {
             editTextEmail.setError("Please enter your email");
+            editTextEmail.requestFocus();
+            return;
+        }
+
+        if (TextUtils.isEmpty(mobile)) {
+            editTextEmail.setError("Please enter your Mobile No");
             editTextEmail.requestFocus();
             return;
         }
@@ -116,6 +124,7 @@ public class RegisterActivity extends AppCompatActivity {
                                         userJson.getInt("id"),
                                         userJson.getString("username"),
                                         userJson.getString("email"),
+                                        userJson.getString("phoneno"),
                                         userJson.getString("gender")
                                 );
 
@@ -142,10 +151,12 @@ public class RegisterActivity extends AppCompatActivity {
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
                 Map<String, String> params = new HashMap<>();
-                params.put("username", username);
+                params.put("name", username);
                 params.put("email", email);
+                params.put("mobile", mobile);
                 params.put("password", password);
                 params.put("gender", gender);
+              //params.put("client", "0");
                 return params;
             }
         };
